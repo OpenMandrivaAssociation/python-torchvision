@@ -32,8 +32,9 @@ Requires:	python%{pyver}dist(pillow)
 %description
 The torchvision package consists of popular datasets, model
 architectures, and common image transformations for computer vision.
-Matches python-torch 2.13. Built with CPU PNG/JPEG/WebP support;
-ROCm/CUDA kernels follow whatever the installed torch provides.
+Matches python-torch 2.13. Image codecs are system libpng / libjpeg /
+libwebp. Native ffmpeg video I/O was removed upstream in 0.22+ in
+favour of TorchCodec; there is nothing here to link against libav.
 
 %prep -a
 # setup.py writes torchvision/version.py from version.txt + BUILD_VERSION.
@@ -41,7 +42,7 @@ ROCm/CUDA kernels follow whatever the installed torch provides.
 %build -p
 export BUILD_VERSION=%{version}
 export FORCE_CUDA=0
-export TORCHVISION_USE_FFMPEG=0
+# nvJPEG is CUDA-only; setup.py still defaults it on.
 export TORCHVISION_USE_NVJPEG=0
 export TORCHVISION_USE_PNG=1
 export TORCHVISION_USE_JPEG=1
