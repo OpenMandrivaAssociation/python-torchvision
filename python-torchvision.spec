@@ -48,6 +48,22 @@ export TORCHVISION_USE_PNG=1
 export TORCHVISION_USE_JPEG=1
 export TORCHVISION_USE_WEBP=1
 export TORCH_CUDA_ARCH_LIST=
+# torch.utils.cpp_extension injects -std=c++20 into every compile,
+# including bundled giflib *.c. Strip that flag for the C compiler.
+cat > c-no-cxxstd <<'EOF'
+#!/bin/bash
+args=()
+for a in "$@"; do
+	case "$a" in
+	-std=c++*) ;;
+	*) args+=("$a") ;;
+	esac
+done
+exec /usr/bin/clang "${args[@]}"
+EOF
+chmod +x c-no-cxxstd
+export CC="$PWD/c-no-cxxstd"
+export CXX=clang++
 
 %files
 %doc README.md
