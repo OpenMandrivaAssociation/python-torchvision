@@ -20,6 +20,19 @@ BuildRequires:	python%{pyver}dist(pip)
 BuildRequires:	python%{pyver}dist(setuptools)
 BuildRequires:	python%{pyver}dist(wheel)
 BuildRequires:	python%{pyver}dist(torch)
+# Same imported HIP targets as torchcodec. torchvision's CMake finds
+# Torch before those packages exist.
+BuildRequires:	cmake(hip)
+BuildRequires:	cmake(hiprtc)
+BuildRequires:	cmake(rocblas)
+BuildRequires:	cmake(hipblas)
+BuildRequires:	cmake(hipfft)
+BuildRequires:	cmake(hiprand)
+BuildRequires:	cmake(hipsparse)
+BuildRequires:	cmake(rocsolver)
+BuildRequires:	cmake(hipsolver)
+BuildRequires:	cmake(hipblaslt)
+BuildRequires:	cmake(miopen)
 BuildRequires:	python%{pyver}dist(numpy)
 BuildRequires:	python%{pyver}dist(pillow)
 Requires:	python%{pyver}dist(torch)
@@ -38,6 +51,31 @@ favour of TorchCodec; there is nothing here to link against libav.
 
 %prep -a
 # setup.py writes torchvision/version.py from version.txt + BUILD_VERSION.
+# c10_hip / torch_hip reference hip::host and the roc* targets. Finding
+# Torch first fails configure on the ROCm build.
+python - <<'PY'
+from pathlib import Path
+p = Path("CMakeLists.txt")
+text = p.read_text()
+old = "find_package(Torch REQUIRED)\n"
+new = """# OM python-torch is the ROCm build. Import its HIP dependencies first.
+find_package(hip CONFIG REQUIRED)
+find_package(hiprtc CONFIG REQUIRED)
+find_package(rocblas CONFIG REQUIRED)
+find_package(hipblas CONFIG REQUIRED)
+find_package(hipfft CONFIG REQUIRED)
+find_package(hiprand CONFIG REQUIRED)
+find_package(hipsparse CONFIG REQUIRED)
+find_package(rocsolver CONFIG REQUIRED)
+find_package(hipsolver CONFIG REQUIRED)
+find_package(hipblaslt CONFIG REQUIRED)
+find_package(miopen CONFIG REQUIRED)
+find_package(Torch REQUIRED)
+"""
+if text.count(old) != 1:
+    raise SystemExit(f"expected one Torch find_package, found {text.count(old)}")
+p.write_text(text.replace(old, new, 1))
+PY
 
 %build -p
 export BUILD_VERSION=%{version}
