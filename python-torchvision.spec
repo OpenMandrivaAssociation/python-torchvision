@@ -2,7 +2,7 @@
 
 Name:		python-torchvision
 Version:	0.28.0
-Release:	1
+Release:	2
 Summary:	Datasets, transforms and models for computer vision (PyTorch)
 License:	BSD-3-Clause
 Group:		Development/Python
@@ -11,7 +11,7 @@ Source0:	https://github.com/pytorch/vision/archive/refs/tags/v%{version}.tar.gz#
 
 BuildSystem:	python
 BuildRequires:	python
-BuildRequires:	pkgconfig(python)
+BuildRequires:	pkgconfig(python3)
 BuildRequires:	pkgconfig(libpng)
 BuildRequires:	pkgconfig(libjpeg)
 BuildRequires:	pkgconfig(libwebp)
