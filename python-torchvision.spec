@@ -20,6 +20,11 @@ BuildRequires:	python%{pyver}dist(pip)
 BuildRequires:	python%{pyver}dist(setuptools)
 BuildRequires:	python%{pyver}dist(wheel)
 BuildRequires:	python%{pyver}dist(torch)
+# setup.py compiles the HIP ops with hipcc. Device bitcode comes
+# from rocm-device-libs. Arch list is the same one python-torch used.
+BuildRequires:	hipcc
+BuildRequires:	/usr/bin/clang-offload-bundler
+BuildRequires:	rocm-device-libs
 # Same imported HIP targets as torchcodec. torchvision's CMake finds
 # Torch before those packages exist.
 BuildRequires:	cmake(hip)
@@ -79,7 +84,18 @@ PY
 
 %build -p
 export BUILD_VERSION=%{version}
-export FORCE_CUDA=0
+# Headless chroot: torch.cuda.is_available() is false, so IS_ROCM
+# hipifies vision.cpp beside the original and the CPU extension
+# compiles both (duplicate vision::cuda_version). FORCE_CUDA selects
+# CUDAExtension, which keeps only the hipified file.
+# https://github.com/pytorch/vision/issues/9298
+export FORCE_CUDA=1
+export PYTORCH_ROCM_ARCH='gfx906;gfx908;gfx90a;gfx942;gfx1030;gfx1100;gfx1101;gfx1102;gfx1200;gfx1201'
+export ROCM_PATH=%{_prefix}
+export ROCM_HOME=%{_prefix}
+export HIP_CLANG_PATH=%{_bindir}
+export HIP_DEVICE_LIB_PATH=%{_libdir}/amdgcn/bitcode
+export MAX_JOBS=4
 # nvJPEG is CUDA-only; setup.py still defaults it on.
 export TORCHVISION_USE_NVJPEG=0
 export TORCHVISION_USE_PNG=1
