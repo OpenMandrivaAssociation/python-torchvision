@@ -99,6 +99,13 @@ export ROCM_HOME=%{_prefix}
 export HIP_CLANG_PATH=%{_bindir}
 export HIP_DEVICE_LIB_PATH=%{_libdir}/amdgcn/bitcode
 export MAX_JOBS=4
+# cpp_extension adds $ROCM_HOME/lib (/usr/lib) before lib64.
+# /usr/lib/libc.so is the i386 linker script, so lld switches to
+# elf32-i386 and rejects the 64-bit objects. Search lib64 first.
+export LDFLAGS="-L%{_libdir}${LDFLAGS:+ $LDFLAGS}"
+%ifarch x86_64 znver1
+export LDFLAGS="-Wl,-m,elf_x86_64 $LDFLAGS"
+%endif
 # nvJPEG is CUDA-only; setup.py still defaults it on.
 export TORCHVISION_USE_NVJPEG=0
 export TORCHVISION_USE_PNG=1
