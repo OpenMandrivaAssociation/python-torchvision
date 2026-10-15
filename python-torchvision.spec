@@ -22,9 +22,12 @@ BuildRequires:	python%{pyver}dist(wheel)
 BuildRequires:	python%{pyver}dist(torch)
 # setup.py compiles the HIP ops with hipcc. Device bitcode comes
 # from rocm-device-libs. Arch list is the same one python-torch used.
+# Torch's complex.h includes thrust/complex.h. That header is
+# rocthrust, and it is not pulled in by hipcc.
 BuildRequires:	hipcc
 BuildRequires:	/usr/bin/clang-offload-bundler
 BuildRequires:	rocm-device-libs
+BuildRequires:	cmake(rocthrust)
 # Same imported HIP targets as torchcodec. torchvision's CMake finds
 # Torch before those packages exist.
 BuildRequires:	cmake(hip)
